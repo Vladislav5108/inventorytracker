@@ -19,20 +19,15 @@ func NewCategoryRepo(db *sql.DB) *CategoryRepo {
 //Создание новой категории
 
 func (c *CategoryRepo) CreateCategory(category domain.Category) (int, error) {
-	query := `INSERT INTO category(
-	 name,description
-	 )
-	 VALUES(
-	 $1,
-	 $2
-	 )
+	query := `INSERT INTO category(name,description)
+	 VALUES($1,$2)
 	 RETURNING id`
 
 	var id int
 
 	err := c.db.QueryRow(query, category.Name, category.Description).Scan(&id)
 	if err != nil {
-		return 0, fmt.Errorf("ошибка создания категории: %w", err)
+		return 0, fmt.Errorf("error created cotegory: %w", err)
 	}
 	return id, nil
 }
@@ -52,19 +47,19 @@ func (c *CategoryRepo) GetByIDCategory(id int) (domain.Category, error) {
 		&category.Description)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return domain.Category{}, domain.ErrNotId
+			return domain.Category{}, domain.ErrNotFoundCategory
 		}
-		return domain.Category{}, fmt.Errorf("ошибка чтения данных: %w", err)
+		return domain.Category{}, fmt.Errorf("data reading error: %w", err)
 	}
 	return category, nil
 }
 
-func (c *CategoryRepo) GetALLCategory() ([]domain.Category, error) {
+func (c *CategoryRepo) GetAllCategories() ([]domain.Category, error) {
 	query := `SELECT * FROM category`
 
 	rows, err := c.db.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка запроса списка категорий:%w", err)
+		return nil, fmt.Errorf("list request error:%w", err)
 	}
 	defer rows.Close()
 
@@ -78,17 +73,17 @@ func (c *CategoryRepo) GetALLCategory() ([]domain.Category, error) {
 			&ca.Description,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("ошибка чтения данных: %w", err)
+			return nil, fmt.Errorf("data reading error: %w", err)
 		}
 		categories = append(categories, ca)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("ошибка аолучения спика :%w", err)
+		return nil, fmt.Errorf("error getting the list :%w", err)
 	}
 	return categories, nil
 }
 
-func (c *CategoryRepo) UpDateCategory(category domain.Category) error {
+func (c *CategoryRepo) UpdateCategory(category domain.Category) error {
 	query := `UPDATE category
 	SET
 	name = $1,
@@ -102,14 +97,14 @@ func (c *CategoryRepo) UpDateCategory(category domain.Category) error {
 		category.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("ошибка запроса обновления категории: %w", err)
+		return fmt.Errorf("error update category: %w", err)
 	}
 	rowsUpdate, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("ошибка проверки на возврат количества строк: %w", err)
+		return fmt.Errorf("error returning the number of rows: %w", err)
 	}
 	if rowsUpdate == 0 {
-		return domain.ErrNotId
+		return domain.ErrNotFoundCategory
 	}
 	return nil
 }
@@ -119,16 +114,15 @@ func (c *CategoryRepo) DeleteCategory(id int) error {
 
 	result, err := c.db.Exec(query, id)
 	if err != nil {
-		return fmt.Errorf("ошибка удаления:%w", err)
+		return fmt.Errorf("error delete:%w", err)
 	}
 
 	rowsDeleted, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("ошибка проверки удаления: %w", err)
+		return fmt.Errorf("error delete: %w", err)
 	}
 	if rowsDeleted == 0 {
-		return domain.ErrNotId
+		return domain.ErrNotFoundCategory
 	}
 	return nil
 }
-

@@ -3,7 +3,8 @@ package domain
 import "errors"
 
 var ErrNameCategory = errors.New("имя категории не должно быть пустым")
-var ErrNotId = errors.New("ID не существует")
+var ErrNotFoundCategory = errors.New("ID не существует")
+var ErrAlreadyCategory = errors.New("category already exists")
 
 type Category struct {
 	ID          int
@@ -17,4 +18,3 @@ func (c *Category) Validate() error {
 	}
 	return nil
 }
-

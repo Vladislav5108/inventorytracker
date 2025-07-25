@@ -6,6 +6,9 @@ import (
 )
 
 var (
+	ErrProductArchived  = errors.New("product on archive")
+	ErrUpdateArchived   = errors.New("not update archive product")
+	ErrDuplicateName    = errors.New("товар с таким именем уже существует")
 	ErrInvalidIdProduct = errors.New("id должен быть положительным")
 	ErrProductNotFound  = errors.New("товара нет ")
 	ErrName             = errors.New("имя не должно быть пустым")
@@ -16,10 +19,11 @@ var (
 type Product struct {
 	ID         int
 	Name       string
-	Price      float64
+	Price      int
 	Quantity   int
 	CategoryID int
 	CreatedAt  time.Time
+	IsArchived bool
 }
 
 func (p *Product) Validate() error {
@@ -35,4 +39,3 @@ func (p *Product) Validate() error {
 	}
 	return nil
 }
-

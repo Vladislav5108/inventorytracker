@@ -17,35 +17,28 @@ func NewProductUseCase(repo repository.ProductRepository) *ProductUseCase {
 
 func (uc *ProductUseCase) GetByID(id int) (domain.Product, error) {
 	if id <= 0 {
-		return domain.Product{}, domain.ErrNotId
+		return domain.Product{}, domain.ErrProductNotFound
 	}
-	product, err := uc.repo.GetByID(id)
-	if err != nil {
-		return domain.Product{}, err
-	}
-	return product, nil
+	return uc.repo.GetByID(id)
 }
-func (uc *ProductUseCase) GetALL() ([]domain.Product, error) {
-	products, err := uc.repo.GetALL()
+
+func (uc *ProductUseCase) GetAll() ([]domain.Product, error) {
+	products, err := uc.repo.GetAll()
 	if err != nil {
-		return nil, fmt.Errorf("ошибка, не удалось получить список продуктов: %w", err)
+		return nil, fmt.Errorf("error getting products: %w", err)
 	}
 	if len(products) == 0 {
-		return nil, fmt.Errorf("список пуст: %w", err)
+		return nil, fmt.Errorf("the list is empty: %w", err)
 	}
 	return products, nil
 }
 func (uc *ProductUseCase) GetByCategory(CategoryID int) ([]domain.Product, error) {
 	if CategoryID <= 0 {
-		return nil, domain.ErrNotId
+		return nil, domain.ErrNotFoundCategory
 	}
 	products, err := uc.repo.GetByCategory(CategoryID)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при получении продуктов по категории:%w", err)
-	}
-	if len(products) == 0 {
-		return nil, fmt.Errorf("ошибка, пустой список: %w", err)
+		return nil, fmt.Errorf("error getting product on category:%w", err)
 	}
 	return products, nil
 }
-

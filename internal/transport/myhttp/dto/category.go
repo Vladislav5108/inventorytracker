@@ -6,6 +6,6 @@ type CreateCategoryRequest struct {
 
 type CategoryResponse struct {
 	ID          int     `json:"id"`
-	Name        string  `json:"name"`
+	Name        string  `json:"name" binding:"required,min=2"`
 	Description *string `json:"description,omitempty"`
 }
