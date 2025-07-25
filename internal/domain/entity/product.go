@@ -8,12 +8,12 @@ import (
 var (
 	ErrProductArchived  = errors.New("product on archive")
 	ErrUpdateArchived   = errors.New("not update archive product")
-	ErrDuplicateName    = errors.New("товар с таким именем уже существует")
-	ErrInvalidIdProduct = errors.New("id должен быть положительным")
-	ErrProductNotFound  = errors.New("товара нет ")
-	ErrName             = errors.New("имя не должно быть пустым")
-	ErrPrice            = errors.New("цена должна быть положительной")
-	ErrQuantity         = errors.New("количество не должно быть отрицательным")
+	ErrDuplicateName    = errors.New("product with this name already exists")
+	ErrInvalidIdProduct = errors.New("ID must be positive")
+	ErrProductNotFound  = errors.New("product not found")
+	ErrName             = errors.New("name cannot be empty")
+	ErrPrice            = errors.New("price must be positive")
+	ErrQuantity         = errors.New("quantity cannot be negative")
 )
 
 type Product struct {

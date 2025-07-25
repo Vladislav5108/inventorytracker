@@ -2,8 +2,8 @@ package domain
 
 import "errors"
 
-var ErrNameCategory = errors.New("имя категории не должно быть пустым")
-var ErrNotFoundCategory = errors.New("ID не существует")
+var ErrNameCategory = errors.New("category name cannot be empty")
+var ErrNotFoundCategory = errors.New("ID not found")
 var ErrAlreadyCategory = errors.New("category already exists")
 
 type Category struct {
