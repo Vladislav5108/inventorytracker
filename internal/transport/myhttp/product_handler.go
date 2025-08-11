@@ -51,6 +51,7 @@ func (h *ProductHandler) GetByID(c *gin.Context) {
 		Price:      product.Price,
 		Quantity:   product.Quantity,
 		CreatedAt:  product.CreatedAt,
+		CategoryID: product.CategoryID,
 		IsArchived: product.IsArchived,
 	})
 }
@@ -69,6 +70,7 @@ func (h *ProductHandler) GetAll(c *gin.Context) {
 			Price:      product.Price,
 			Quantity:   product.Quantity,
 			CreatedAt:  product.CreatedAt,
+			CategoryID: product.CategoryID,
 			IsArchived: product.IsArchived,
 		})
 
@@ -95,6 +97,7 @@ func (h *ProductHandler) GetByCategory(c *gin.Context) {
 			Price:      product.Price,
 			Quantity:   product.Quantity,
 			CreatedAt:  product.CreatedAt,
+			CategoryID: product.CategoryID,
 			IsArchived: product.IsArchived,
 		})
 	}

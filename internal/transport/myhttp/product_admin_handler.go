@@ -2,8 +2,10 @@ package myhttp
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	domain "github.com/Vladislav5108/inventorytracker/internal/domain/entity"
 	"github.com/Vladislav5108/inventorytracker/internal/transport/myhttp/dto"
@@ -21,20 +23,29 @@ func NewAdminProductHandler(admin usecase.ProductAdmin) *AdminProductHandler {
 
 func (h *AdminProductHandler) Add(c *gin.Context) {
 	var request dto.CreateProductRequest
-	err := c.ShouldBindJSON(&request)
-	if err != nil {
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "format error"})
+		return
+	}
+	if request.CategoryID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "category_id is required"})
 		return
 	}
 	product := domain.Product{
 		Name:       request.Name,
 		Price:      request.Price,
 		Quantity:   request.Quantity,
+		CategoryID: request.CategoryID,
 		IsArchived: false,
 	}
 	id, err := h.admin.Add(product)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "add product"})
+		log.Printf("Add product error: %v", err)
+		status := http.StatusInternalServerError
+		if strings.Contains(err.Error(), "foreign key") {
+			status = http.StatusBadRequest
+		}
+		c.JSON(status, gin.H{"error": "add product failed"})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"id": id})
@@ -52,17 +63,18 @@ func (h *AdminProductHandler) Update(c *gin.Context) {
 		return
 	}
 
-	var request dto.CreateProductRequest
+	var request dto.UpdateProductRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect data format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	product := domain.Product{
-		ID:       id,
-		Name:     request.Name,
-		Price:    request.Price,
-		Quantity: request.Quantity,
+		ID:         id,
+		Name:       request.Name,
+		Price:      request.Price,
+		Quantity:   request.Quantity,
+		CategoryID: request.CategoryID,
 	}
 	err = h.admin.Update(product)
 	if err != nil {
@@ -92,8 +104,12 @@ func (h *AdminProductHandler) Archiv(c *gin.Context) {
 	}
 	err = h.admin.Archiv(id)
 	if err != nil {
+		if errors.Is(err, domain.ErrProductArchived) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
 		if errors.Is(err, domain.ErrProductNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error on archiving"})
@@ -124,8 +140,8 @@ func (h *AdminProductHandler) Restore(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"status":     "product restore",
-		"is_arhived": false,
+		"status":      "product restore",
+		"is_archived": false,
 	})
 }
 func (h *AdminProductHandler) GetArchived(c *gin.Context) {
@@ -142,7 +158,8 @@ func (h *AdminProductHandler) GetArchived(c *gin.Context) {
 			Price:      p.Price,
 			Quantity:   p.Quantity,
 			CategoryID: p.CategoryID,
-			IsArchived: true,
+			IsArchived: p.IsArchived,
+			CreatedAt:  p.CreatedAt,
 		})
 	}
 

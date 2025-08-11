@@ -20,6 +20,6 @@ type CategoryCatalog interface {
 	CreateCategory(category domain.Category) (int, error) //Создание новой категории
 	GetByIDCategory(id int) (domain.Category, error)      //получение категории по ID
 	GetAllCategories() ([]domain.Category, error)         //получение списка всех категорий
-	UpDateCategory(category domain.Category) error        //обновление категории
+	UpdateCategory(category domain.Category) error        //обновление категории
 	DeleteCategory(id int) error                          //удаление кактегории
 }

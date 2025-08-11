@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 
 	domain "github.com/Vladislav5108/inventorytracker/internal/domain/entity"
 )
@@ -19,23 +20,26 @@ func NewCategoryRepo(db *sql.DB) *CategoryRepo {
 //Создание новой категории
 
 func (c *CategoryRepo) CreateCategory(category domain.Category) (int, error) {
-	query := `INSERT INTO category(name,description)
+
+	query := `INSERT INTO categories(name,description)
 	 VALUES($1,$2)
 	 RETURNING id`
+
+	log.Printf("Executing: %s with %+v", query, category)
 
 	var id int
 
 	err := c.db.QueryRow(query, category.Name, category.Description).Scan(&id)
 	if err != nil {
-		return 0, fmt.Errorf("error created cotegory: %w", err)
+		return 0, fmt.Errorf("error created category: %w", err)
 	}
 	return id, nil
 }
 
 // получениу категории
 func (c *CategoryRepo) GetByIDCategory(id int) (domain.Category, error) {
-	query := `SELECT  id, name,description
-	FROM category
+	query := `SELECT  id, name, description
+	FROM categories
 	WHERE id = $1`
 
 	var category domain.Category
@@ -55,13 +59,17 @@ func (c *CategoryRepo) GetByIDCategory(id int) (domain.Category, error) {
 }
 
 func (c *CategoryRepo) GetAllCategories() ([]domain.Category, error) {
-	query := `SELECT * FROM category`
+	query := `SELECT id, name, description FROM categories`
 
 	rows, err := c.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("list request error:%w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("rows close error: %v", err)
+		}
+	}()
 
 	var categories []domain.Category
 
@@ -84,11 +92,15 @@ func (c *CategoryRepo) GetAllCategories() ([]domain.Category, error) {
 }
 
 func (c *CategoryRepo) UpdateCategory(category domain.Category) error {
-	query := `UPDATE category
+	query := `UPDATE categories
 	SET
 	name = $1,
 	description = $2
 	WHERE id = $3`
+
+	if _, err := c.GetByIDCategory(category.ID); err != nil {
+		return domain.ErrNotFoundCategory
+	}
 
 	result, err := c.db.Exec(
 		query,
@@ -110,7 +122,7 @@ func (c *CategoryRepo) UpdateCategory(category domain.Category) error {
 }
 
 func (c *CategoryRepo) DeleteCategory(id int) error {
-	query := `DELETE FROM category WHERE id = $1`
+	query := `DELETE FROM categories WHERE id = $1`
 
 	result, err := c.db.Exec(query, id)
 	if err != nil {

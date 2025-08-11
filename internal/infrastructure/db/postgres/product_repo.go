@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
+	"time"
 
 	domain "github.com/Vladislav5108/inventorytracker/internal/domain/entity"
 )
@@ -20,7 +22,7 @@ func NewProductRepo(db *sql.DB) *ProductRepo {
 func (r *ProductRepo) GetByID(id int) (domain.Product, error) {
 	var product domain.Product
 
-	query := `SELECT id, name, price, quantity, category_id, created_at,is_archived
+	query := `SELECT id, name, price, quantity, category_id, created_at, is_archived
 	FROM products
 	WHERE id = $1`
 	row := r.db.QueryRow(query, id)
@@ -55,7 +57,11 @@ func (r *ProductRepo) GetAll() ([]domain.Product, error) {
 	if err != nil {
 		return nil, fmt.Errorf("list request error: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("rows close error: %v", err)
+		}
+	}()
 
 	var products []domain.Product
 	var p domain.Product
@@ -94,7 +100,11 @@ WHERE category_id = $1`
 	if err != nil {
 		return nil, fmt.Errorf("category list request error: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("rows close error: %v", err)
+		}
+	}()
 
 	var product []domain.Product
 
@@ -124,8 +134,8 @@ WHERE category_id = $1`
 
 func (r *ProductRepo) Add(product domain.Product) (int, error) {
 	query := `INSERT INTO products(
-	name,price,quantity,category_id,is_archived)
-	VALUES($1,$2,$3,$4,$5)
+	name, price, quantity, category_id, is_archived, created_at)
+	VALUES($1,$2,$3,$4,$5,$6)
 	RETURNING id`
 
 	var id int
@@ -135,7 +145,9 @@ func (r *ProductRepo) Add(product domain.Product) (int, error) {
 		product.Price,
 		product.Quantity,
 		product.CategoryID,
-		product.IsArchived).Scan(&id)
+		product.IsArchived,
+		time.Now(),
+	).Scan(&id)
 
 	if err != nil {
 		return 0, fmt.Errorf("error add data: %w", err)
@@ -147,9 +159,9 @@ func (r *ProductRepo) Add(product domain.Product) (int, error) {
 
 func (r *ProductRepo) Update(product domain.Product) error {
 	query := `UPDATE products SET
-	name = $1,price = $2,quantity = $3,category_id = $4
-	WHERE id = $5 AND is_archived = false
-	`
+	name = $1, price = $2, quantity = $3, category_id = $4
+	WHERE id = $5 `
+
 	result, err := r.db.Exec(
 		query,
 		product.Name,
@@ -212,7 +224,7 @@ func (r *ProductRepo) Restore(id int) error {
 // возвращаем список скрытых товаров
 
 func (r *ProductRepo) GetArchived() ([]domain.Product, error) {
-	query := `SELECT * 
+	query := `SELECT id, name, price, quantity, category_id, created_at, is_archived 
 	FROM products
 	WHERE is_archived = true`
 
@@ -220,7 +232,11 @@ func (r *ProductRepo) GetArchived() ([]domain.Product, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting the archive list: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("rows close error: %v", err)
+		}
+	}()
 
 	var products []domain.Product
 

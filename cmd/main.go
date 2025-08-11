@@ -31,9 +31,11 @@ func main() {
 	if err != nil {
 		log.Fatal("DB Connection error:", err)
 	}
-	defer db.Close()
-
-	log.Println("Postgres connection!")
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("database close error:%v", err)
+		}
+	}()
 
 	ProductRepo := postgres.NewProductRepo(db)
 	CategoryRepo := postgres.NewCategoryRepo(db)
@@ -50,14 +52,28 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/products", productHandler.GetAll)
-	r.GET("/products/:id", productHandler.GetByID)
-	r.GET("/categories", categoryHandler.GetAllCategories)
+	public := r.Group("/api/v1")
+
+	public.GET("/products", productHandler.GetAll)
+	public.GET("/products/:id", productHandler.GetByID)
+	public.GET("/products/category/:id", productHandler.GetByCategory)
+
+	public.GET("/categories", categoryHandler.GetAllCategories)
+	public.GET("categories/:id", categoryHandler.GetByIDCategory)
 
 	admin := r.Group("/admin")
 	{
 		admin.POST("/products", productAdminHandler.Add)
 		admin.PUT("/products/:id", productAdminHandler.Update)
+		admin.PATCH("/products/:id/archive", productAdminHandler.Archiv)
+		admin.PATCH("/products/:id/restore", productAdminHandler.Restore)
+		admin.GET("/products/archived", productAdminHandler.GetArchived)
+
+		admin.POST("/categories", categoryHandler.CreateCategory)
+		admin.PUT("/categories/:id", categoryHandler.UpDateCategory)
+		admin.DELETE("/categories/:id", categoryHandler.DeleteCategory)
+		admin.GET("/categories/:id", categoryHandler.GetByIDCategory)
+
 	}
 
 	port := cfg.Server.Port

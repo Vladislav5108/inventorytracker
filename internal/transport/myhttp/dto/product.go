@@ -3,9 +3,17 @@ package dto
 import "time"
 
 type CreateProductRequest struct {
-	Name     string `json:"name" binding:"required,min=2"`
-	Price    int    `json:"price" binding:"required,gt=0"`
-	Quantity int    `json:"quantity" binding:"gte=0"`
+	Name       string `json:"name" binding:"required,min=2"`
+	Price      int    `json:"price" binding:"required,gt=0"`
+	Quantity   int    `json:"quantity" binding:"gte=0"`
+	CategoryID int    `json:"category_id" binding:"required,min=1"`
+}
+
+type UpdateProductRequest struct {
+	Name       string `json:"name" binding:"required,min=2"`
+	Price      int    `json:"price" binding:"required,gt=0"`
+	Quantity   int    `json:"quantity" binding:"gte=0"`
+	CategoryID int    `json:"category_id" binding:"required,min=1"`
 }
 
 type ProductResponse struct {
@@ -13,7 +21,7 @@ type ProductResponse struct {
 	Name       string    `json:"name"`
 	Price      int       `json:"price"`
 	Quantity   int       `json:"quantity"`
-	CategoryID int       `json:"category_id,omitempty"`
+	CategoryID int       `json:"category_id"`
 	CreatedAt  time.Time `json:"created_at" format:"date-time"`
 	IsArchived bool      `json:"is_archived"`
 }

@@ -40,7 +40,7 @@ func (uc *CategoryUseCase) GetAllCategories() ([]domain.Category, error) {
 	}
 	return categories, nil
 }
-func (uc *CategoryUseCase) UpDateCategory(category domain.Category) error {
+func (uc *CategoryUseCase) UpdateCategory(category domain.Category) error {
 	if category.ID <= 0 {
 		return domain.ErrNotFoundCategory
 	}

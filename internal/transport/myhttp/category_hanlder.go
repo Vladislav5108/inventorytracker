@@ -28,7 +28,8 @@ func (h *CategoryHandler) CreateCategory(c *gin.Context) {
 		return
 	}
 	category := domain.Category{
-		Name: request.Name,
+		Name:        request.Name,
+		Description: request.Description,
 	}
 	id, err := h.category.CreateCategory(category)
 	if err != nil {
@@ -95,14 +96,15 @@ func (h *CategoryHandler) UpDateCategory(c *gin.Context) {
 		return
 	}
 	category := domain.Category{
-		ID:   id,
-		Name: request.Name,
+		ID:          id,
+		Name:        request.Name,
+		Description: request.Description,
 	}
 
-	err = h.category.UpDateCategory(category)
+	err = h.category.UpdateCategory(category)
 	if err != nil {
-		if errors.Is(err, domain.ErrNameCategory) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "category not found"})
+		if errors.Is(err, domain.ErrNotFoundCategory) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
@@ -132,3 +134,4 @@ func (h *CategoryHandler) DeleteCategory(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, nil)
 }
+
