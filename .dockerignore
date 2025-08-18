@@ -1,0 +1,16 @@
+.DS_Store
+.thumbs.db
+
+.git/
+.gitignore
+
+tmp/
+*.tmp
+coverage.out
+*.out
+
+README.md
+*.md
+
+.env
+*.local.yaml

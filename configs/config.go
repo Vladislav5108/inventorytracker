@@ -2,6 +2,8 @@ package configs
 
 import (
 	"errors"
+	"log"
+	"os"
 	"time"
 )
 
@@ -24,19 +26,26 @@ type ServerConfig struct {
 	WriteTimeout time.Duration
 }
 
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
+}
+
 func Load() (*AppConfig, error) {
 	cfg := &AppConfig{
 		Postgres: PostgresConfig{
-			Host:     "localhost",
-			Port:     "5432",
-			User:     "postgres",
-			Password: "qwerty",
-			DBName:   "inventory",
-			SSLMode:  "disable",
+			Host:     os.Getenv("DB_HOST"), // Только из переменных окружения
+			Port:     os.Getenv("DB_PORT"), // без fallback значений!
+			User:     os.Getenv("DB_USER"),
+			Password: os.Getenv("DB_PASSWORD"),
+			DBName:   os.Getenv("DB_NAME"),
+			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 			Timeout:  5 * time.Second,
 		},
 		Server: ServerConfig{
-			Port:         ":8081",
+			Port:         ":" + getEnv("SERVER_PORT", "8081"),
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		},
@@ -44,6 +53,7 @@ func Load() (*AppConfig, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
+	log.Printf("Final config: %+v", cfg)
 	return cfg, nil
 }
 func (c *AppConfig) Validate() error {

@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
 	domain "github.com/Vladislav5108/inventorytracker/internal/domain/entity"
 	"github.com/Vladislav5108/inventorytracker/internal/transport/myhttp/dto"
@@ -31,6 +30,7 @@ func (h *AdminProductHandler) Add(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "category_id is required"})
 		return
 	}
+
 	product := domain.Product{
 		Name:       request.Name,
 		Price:      request.Price,
@@ -41,11 +41,7 @@ func (h *AdminProductHandler) Add(c *gin.Context) {
 	id, err := h.admin.Add(product)
 	if err != nil {
 		log.Printf("Add product error: %v", err)
-		status := http.StatusInternalServerError
-		if strings.Contains(err.Error(), "foreign key") {
-			status = http.StatusBadRequest
-		}
-		c.JSON(status, gin.H{"error": "add product failed"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "add product failed"})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"id": id})
